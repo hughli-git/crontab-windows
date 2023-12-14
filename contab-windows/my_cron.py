@@ -19,7 +19,10 @@ def parse_cron_line(cron_line):
     """
     解析单行crontab记录
     """
-    parts = cron_line.strip().split()
+    cron_line = cron_line.strip()
+    if cron_line.startswith("#"):
+        return None, None
+    parts = cron_line.split()
     if len(parts) < 6:
         return None, None
     schedule, command = parts[:5], " ".join(parts[5:])
@@ -38,7 +41,6 @@ def parse_cron_line(cron_line):
         "months": months,
         "weekdays": weekdays,
     }
-
     return cron_schedule, command
 
 
@@ -165,15 +167,16 @@ def is_process_running():
 
 
 if __name__ == "__main__":
+    # 避免重复启动
     if is_process_running():
         logging.error("Another Process Running")
         exit(1)
+    # 获取配置文件参数
     config_path = DEFAULT_CONFIG
     if len(sys.argv) == 2:
         config_path = sys.argv[1]
-
     # 校验配置文件路径
     if not os.path.exists(config_path):
         raise ValueError(f"Invalid crontab file: {config_path}")
-
+    # 开始执行
     main_loop(config_path)
